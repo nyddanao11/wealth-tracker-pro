@@ -1,0 +1,17 @@
+{
+  "name": "northstar-pwa",
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "npx live-server ./src --port=3000 --open=/",
+    "clean": "rm -rf dist && mkdir dist",
+    "obfuscate": "npx javascript-obfuscator ./src/app.js ./src/db.js --output ./dist --compact true --control-flow-flattening true --dead-code-injection true --string-array true",
+    "copy-assets": "cp ./src/index.html ./src/styles.css ./src/manifest.json ./src/sw.js ./dist/",
+    "build": "npm run clean && npm run obfuscate && npm run copy-assets",
+    "preview": "npx serve ./dist -p 4000"
+  },
+  "devDependencies": {
+    "javascript-obfuscator": "^4.1.0",
+    "live-server": "^1.2.2",
+    "serve": "^14.2.0"
+  }
+}
