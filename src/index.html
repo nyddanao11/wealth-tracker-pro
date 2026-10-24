@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Northstar - Wealth & Goal Tracker</title>
+    <meta name="description" content="Track your net worth and savings goals offline.">
+    <meta name="theme-color" content="#0f172a">
+    <link rel="manifest" href="manifest.json">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="apple-touch-icon" href="icons/icon-192.png">
+</head>
+<body>
+        <!-- ═══════════════════════════════════════════════════════════ -->
+    <!-- LICENSE GATE OVERLAY (Sits on top until verified)          -->
+    <!-- ═══════════════════════════════════════════════════════════ -->
+    <div id="licenseGate" class="license-gate">
+        <div class="license-card">
+            <h2 style="margin-bottom: 5px;">🔒 Northstar</h2>
+            <p style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 20px;">Premium Offline Wealth Tracker</p>
+            
+            <!-- 1. Checking State -->
+            <div id="lcChecking" class="lc-state">
+                <div class="spinner"></div>
+                <p>Verifying your license...</p>
+            </div>
+
+            <!-- 2. Activating State -->
+            <div id="lcActivating" class="lc-state" hidden>
+                <div class="spinner"></div>
+                <p>Activating your license...</p>
+            </div>
+
+            <!-- 3. Purchase Wall State -->
+            <div id="lcPurchaseWall" class="lc-state" hidden>
+                <p style="color: var(--text-secondary); margin-bottom: 20px; font-size: 0.9rem;">
+                    Please enter your activation token to unlock full access.
+                </p>
+                <input type="text" id="lcTokenInput" class="license-input" placeholder="Paste token or activation link">
+                <p id="lcInlineError" class="lc-error" hidden></p>
+                <button id="lcActivateBtn" class="btn-primary" style="margin-top: 10px;">Activate License</button>
+                <p style="margin-top: 20px; font-size: 0.85rem;">
+                    Don't have a license? <a href="https://yeilvastore.com" target="_blank" style="color: var(--accent); text-decoration: none;">Purchase at Yeilva Store</a>
+                </p>
+            </div>
+
+            <!-- 4. Error State -->
+            <div id="lcErrorState" class="lc-state" hidden>
+                <p id="lcErrorMsg" class="lc-error" style="margin-bottom: 20px; font-size: 0.95rem;"></p>
+                <button onclick="window.location.reload()" class="btn-secondary">Try Again</button>
+            </div>
+
+            <!-- 5. Success State -->
+            <div id="lcSuccess" class="lc-state" hidden>
+                <div style="font-size: 3rem; margin-bottom: 10px;">🎉</div>
+                <h3>Activation Successful!</h3>
+                <p id="lcSuccessEmail" style="color: var(--success); margin: 10px 0; font-weight: 600;"></p>
+                <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 20px;">
+                    Your app is now fully cached and ready for offline use.
+                </p>
+                <button id="lcOpenAppBtn" class="btn-primary">Open Northstar</button>
+            </div>
+        </div>
+    </div>
+    <!-- ═══════════════════════════════════════════════════════════ -->
+
+   <header>
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+        <div style="text-align: left;">
+                <h1>Northstar</h1>
+                <!-- Added dbStatus here for a subtle licensed indicator -->
+                <p class="subtitle">Your Wealth, Offline & Secure. <span id="dbStatus"></span></p>
+            </div>
+        <select id="currencySelector" style="background: var(--bg-card); color: var(--text-primary); border: 1px solid rgba(255,255,255,0.1); padding: 8px 12px; border-radius: 8px; font-size: 0.9rem; cursor: pointer; outline: none;">
+            <option value="USD">🇺🇸 USD ($)</option>
+            <option value="EUR">🇪🇺 EUR (€)</option>
+            <option value="GBP">🇬🇧 GBP (£)</option>
+            <option value="JPY">🇯🇵 JPY (¥)</option>
+            <option value="INR">🇮🇳 INR (₹)</option>
+            <option value="PHP">🇵🇭 PHP (₱)</option>
+            <option value="CAD">🇨🇦 CAD (C$)</option>
+            <option value="AUD">🇦🇺 AUD (A$)</option>
+
+            <!-- Newly Added Currencies -->
+            <option value="SGD">🇸🇬 SGD (S$)</option>
+            <option value="MYR">🇲🇾 MYR (RM)</option>
+            <option value="IDR">🇮🇩 IDR (Rp)</option>
+            <option value="THB">🇹🇭 THB (฿)</option>
+            <option value="VND">🇻🇳 VND (₫)</option>
+            <option value="KRW">🇰🇷 KRW (₩)</option>
+            <option value="CNY">🇨🇳 CNY (¥)</option>
+            <option value="HKD">🇭🇰 HKD (HK$)</option>
+            <option value="AED">🇦🇪 AED (د.إ)</option>
+            <option value="NZD">🇳🇿 NZD (NZ$)</option>
+        </select>
+    </div>
+</header>
+
+    <main id="app">
+        <!-- Net Worth Card -->
+        <section class="card net-worth-card">
+            <h2>Net Worth</h2>
+            <div class="big-number" id="netWorthValue">$0.00</div>
+            <button class="btn-primary" id="updateNetWorthBtn">Update Balances</button>
+        </section>
+
+        <!-- Goals Section -->
+        <section class="card">
+            <div class="section-header">
+                <h2>Savings Goals</h2>
+                <button class="btn-icon" id="addGoalBtn">+</button>
+            </div>
+            <div id="goalsContainer" class="goals-grid">
+                <!-- Goals injected here via JS -->
+            </div>
+        </section>
+
+        <!-- Data Portability Section -->
+        <section class="card" style="margin-top: 30px; border: 1px dashed rgba(255,255,255,0.1);">
+            <h2 style="font-size: 1.1rem; margin-bottom: 15px;">🔒 Data & Privacy</h2>
+            <p style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 15px;">
+                Your data lives only on this device. Back it up to keep it safe.
+            </p>
+            <div style="display: flex; gap: 10px;">
+                <button id="exportBtn" class="btn-secondary" style="flex: 1;">📥 Export Data</button>
+                <label for="importFile" class="btn-secondary" style="flex: 1; text-align: center; cursor: pointer; display: flex; align-items: center; justify-content: center;">
+                    📤 Import Data
+                </label>
+                <input type="file" id="importFile" accept=".json" style="display: none;">
+            </div>
+        </section>
+    </main>
+
+    <!-- Modal for Adding/Updating -->
+    <div id="modal" class="modal hidden">
+        <div class="modal-content">
+            <h3 id="modalTitle">Add Goal</h3>
+            <form id="goalForm">
+                <input type="text" id="goalName" placeholder="Goal Name (e.g., Bali Trip)" required>
+                <input type="number" id="goalTarget" placeholder="Target Amount" required>
+                <input type="number" id="goalCurrent" placeholder="Current Amount" required>
+                <div class="modal-actions">
+                    <button type="button" class="btn-secondary" id="cancelBtn">Cancel</button>
+                    <button type="submit" class="btn-primary">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+        <!-- Existing Goal Modal is here... -->
+
+    <!-- NEW: Net Worth Modal -->
+    <div id="netWorthModal" class="modal hidden">
+        <div class="modal-content">
+            <h3>Update Net Worth</h3>
+            <form id="netWorthForm">
+                <label style="color:var(--text-secondary); font-size:0.85rem; display:block; margin-bottom:4px;">Total Assets (Cash, Investments, Property)</label>
+                <input type="number" id="totalAssets" placeholder="e.g., 50000" step="0.01" required>
+                
+                <label style="color:var(--text-secondary); font-size:0.85rem; display:block; margin-bottom:4px; margin-top:10px;">Total Liabilities (Debts, Loans, Mortgages)</label>
+                <input type="number" id="totalLiabilities" placeholder="e.g., 10000" step="0.01" required>
+                
+                <div class="modal-actions" style="margin-top: 20px;">
+                    <button type="button" class="btn-secondary" id="cancelNetWorthBtn">Cancel</button>
+                    <button type="submit" class="btn-primary">Calculate & Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div id="deleteModal" class="modal hidden">
+        <div class="modal-content" style="text-align: center;">
+            <h3 style="color: #f87171;">Delete Goal?</h3>
+            <p style="color: var(--text-secondary); margin: 15px 0;" id="deleteModalText">
+                This action cannot be undone.
+            </p>
+            <div class="modal-actions">
+                <button type="button" class="btn-secondary" id="cancelDeleteBtn">Cancel</button>
+                <button type="button" class="btn-primary" id="confirmDeleteBtn" style="background: #f87171;">Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="db.js"></script>
+    <script src="app.js"></script>
+     <script src="license.js"></script> <!-- MUST LOAD LAST -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                // Note the leading slash: this looks for /sw.js at the domain root
+                navigator.serviceWorker.register('/sw.js')
+                    .then(reg => console.log('SW registered:', reg.scope))
+                    .catch(err => console.log('SW registration failed:', err));
+            });
+        }
+    </script>
+</body>
+</html>
